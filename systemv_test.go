@@ -17,3 +17,15 @@ func Test_NewSystemV(t *testing.T) {
 		t.Logf("key: %s, value: %s\n", key, value)
 	}
 }
+
+func Test_GetKey(t *testing.T) {
+	memory, err := NewSystemV(1, 4, 2)
+	if err != nil {
+		t.Errorf("%v", err)
+		return
+	}
+	memory.WriteIdx("lx", []byte("11"))
+	memory.WriteIdx("lx1", []byte("21"))
+	res, _ := memory.GetKey("lx1")
+	t.Logf("res: %s", res)
+}

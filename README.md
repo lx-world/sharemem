@@ -1,4 +1,5 @@
 # sharemem
+> 1. 支持SystemV, Mmap
 
 # 描述
 > 1. Go操作共享内存
@@ -13,3 +14,38 @@
 
 # 支持
 > 1. linux, macos
+
+# 使用
+systemV
+```go
+    m, err := NewSystemV(1, 4, 2)
+	if err != nil {
+		t.Errorf("%v", err)
+		return
+	}
+	m.WriteIdx("lx", []byte("11"))
+	m.WriteIdx("lx1", []byte("21"))
+	m.DelIdx("lx")
+	m.DelIdx("lx1")
+	res := m.GetAll()
+	for key, value := range res {
+		fmt.Printf("key: %s, value: %s\n", key, value)
+	}
+
+```
+
+mmap
+```go
+    m, err := NewMMap("test.log",4,2)
+	if err != nil{
+		t.Errorf("err: %v", err)
+		return
+	}
+	m.WriteIdx("test1",[]byte("31"))
+	res,_ := m.GetKey("test1")
+    fmt.Printf("%s", res)
+    res1 := m.GetAll()
+    for key, value := range res1 {
+    	fmt.Printf("key: %s, value: %s\n", key, value)
+    }
+```

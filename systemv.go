@@ -2,10 +2,7 @@ package sharemem
 
 import (
 	"fmt"
-	"reflect"
-	"sync"
 	"syscall"
-	"unsafe"
 )
 
 func NewSystemV(key, size, blockSize int) (*Mem, error) {
@@ -21,24 +18,7 @@ func NewSystemV(key, size, blockSize int) (*Mem, error) {
 	if errCode != 0 {
 		return nil, fmt.Errorf("syscall error, err: %v", errCode)
 	}
-	var data []byte
-	originLen := size / blockSize
-	sh := (*reflect.SliceHeader)(unsafe.Pointer(&data))
-	sh.Data = addr
-	sh.Len = size + (keyLen+1+dataLen)*originLen
-	sh.Cap = size + (keyLen+1+dataLen)*originLen
-
-	mem := &Mem{
-		l:         sync.RWMutex{},
-		blockSize: blockSize + 1 + keyLen + dataLen,
-		data:      data,
-		m:         make(map[string]int),
-		ch:        make(chan int, originLen),
-	}
-	for i := 0; i < originLen; i++ {
-		mem.ch <- i
-	}
-	return mem, nil
+	return newMem(size, blockSize, addr)
 }
 
 func (m *Mem) WriteIdx(key string, data []byte) error {

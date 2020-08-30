@@ -2,7 +2,9 @@ package sharemem
 
 import (
 	"fmt"
+	"reflect"
 	"sync"
+	"unsafe"
 )
 
 const (
@@ -18,6 +20,27 @@ type Mem struct {
 	m         map[string]int
 	data      []byte
 	ch        chan int
+}
+
+func newMem(size, blockSize int, addr uintptr) (*Mem, error){
+	var data []byte
+	originLen := size / blockSize
+	sh := (*reflect.SliceHeader)(unsafe.Pointer(&data))
+	sh.Data = addr
+	sh.Len = size + (keyLen+1+dataLen)*originLen
+	sh.Cap = size + (keyLen+1+dataLen)*originLen
+
+	mem := &Mem{
+		l:         sync.RWMutex{},
+		blockSize: blockSize + 1 + keyLen + dataLen,
+		data:      data,
+		m:         make(map[string]int),
+		ch:        make(chan int, originLen),
+	}
+	for i := 0; i < originLen; i++ {
+		mem.ch <- i
+	}
+	return mem, nil
 }
 
 func checkkey(key string) ([keyLen]byte, error) {
